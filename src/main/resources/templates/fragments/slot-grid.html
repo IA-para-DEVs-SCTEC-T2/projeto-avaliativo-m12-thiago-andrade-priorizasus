@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<!--
+  Reusable weekly slot grid widget.
+  Usage: <th:block th:replace="~{fragments/slot-grid :: slotGrid(${slots}, ${weekStart}, ${weekStartDisplay}, ${dayHeaders}, ${timeHeaders}, ${showLinks}, ${bookedOnly}, ${slotColors}, ${slotCategoryLabels})}"/>
+
+  Guardrail G6: slot times displayed via ClinicTimeZone.formatForDisplay(), not raw UTC.
+  Guardrail G8: Patient links use @{/patients/{id}} syntax.
+-->
+<th:block th:fragment="slotGrid(slots, weekStart, weekStartDisplay, dayHeaders, timeHeaders, showLinks, bookedOnly, slotColors, slotCategoryLabels)">
+<div class="card">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <h5 class="card-title mb-0">
+      <i class="bi bi-calendar-week me-2"></i>Grade de Horários
+    </h5>
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-bordered text-center mb-0 agn-slot-grid-table" style="font-size: 13px;">
+        <thead>
+          <tr>
+            <th style="width: 70px; background-color: var(--agn-surface); color: var(--agn-steel);">Horário</th>
+            <th th:each="day : ${dayHeaders}" style="background-color: var(--agn-surface); color: var(--agn-steel);">
+              <span th:text="${day.dayName}">Seg</span><br>
+              <small th:text="${day.dayDate}">--/--</small>
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr th:each="time, rowStat : ${timeHeaders}">
+            <td class="fw-bold small align-middle" style="background-color: var(--agn-surface-soft); color: var(--agn-slate);"
+                th:text="${time}">08:00</td>
+            <td th:each="col : ${#numbers.sequence(0, 4)}"
+                th:with="slotIdx=${col * 8 + rowStat.index},
+                         slot=${slots != null && slotIdx < slots.size() ? slots[slotIdx] : null}"
+                class="align-middle p-0">
+              <th:block th:if="${slot != null}">
+                <!-- BOOKED: color by patient category -->
+                <th:block th:if="${slot.status != null && slot.status.name() == 'BOOKED'}">
+                  <th:block th:with="catLabel=${slotCategoryLabels != null ? slotCategoryLabels.get(slot.id) : null},
+                                     colorClass=${slotColors != null ? slotColors.get(slot.id) : null},
+                                     catCss=${colorClass != null && colorClass.contains('danger')} ? 'agn-slot-prenatal' :
+                                             (${colorClass != null && colorClass.contains('info')} ? 'agn-slot-puericultura' : 'agn-slot-cronico')">
+                    <a th:if="${showLinks}"
+                       th:href="@{/patients/{id}(id=${slot.patient?.id})}"
+                       th:class="'agn-slot-cell text-decoration-none ' + ${catCss}">
+                      <div th:text="${slot.patient?.name ?: 'Agendado'}" style="font-weight:500;">Paciente</div>
+                    </a>
+                    <span th:unless="${showLinks}"
+                          th:class="'agn-slot-cell ' + ${catCss}">
+                      <div th:text="${slot.patient?.name ?: 'Agendado'}" style="font-weight:500;">Agendado</div>
+                    </span>
+                  </th:block>
+                </th:block>
+
+                    <!-- RESERVED -->
+                    <span th:if="${!bookedOnly && slot.status != null && slot.status.name() == 'RESERVED'}"
+                      class="agn-slot-cell agn-slot-reserved">
+                  <span th:text="${slot.patient?.name ?: 'Reservado'}">Reservado</span>
+                </span>
+
+                <!-- AVAILABLE -->
+                    <span th:if="${!bookedOnly && slot.status != null && slot.status.name() == 'AVAILABLE'}"
+                      class="agn-slot-cell agn-slot-available">Livre</span>
+
+                <!-- CANCELLED -->
+                    <span th:if="${!bookedOnly && slot.status != null && slot.status.name() == 'CANCELLED'}"
+                      class="agn-slot-cell agn-slot-cancelled">Cancelado</span>
+
+                <!-- EXPIRED -->
+                    <span th:if="${!bookedOnly && slot.status != null && slot.status.name() == 'EXPIRED'}"
+                      class="agn-slot-cell agn-slot-expired">Expirado</span>
+
+                    <span th:if="${bookedOnly && (slot.status == null || slot.status.name() != 'BOOKED')}"
+                      class="agn-slot-cell agn-slot-empty">&mdash;</span>
+              </th:block>
+              <span th:unless="${slot != null}" class="agn-slot-cell agn-slot-empty">&mdash;</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Legend -->
+  <div class="card-footer" style="background-color: var(--agn-canvas);">
+    <div class="d-flex gap-3 flex-wrap align-items-center" style="font-size: 12px; color: var(--agn-slate);">
+      <span class="fw-semibold" style="color: var(--agn-charcoal);">Categoria:</span>
+      <span class="d-flex align-items-center gap-1">
+        <span class="agn-slot-legend agn-slot-prenatal"></span> Pré-Natal
+      </span>
+      <span class="d-flex align-items-center gap-1">
+        <span class="agn-slot-legend agn-slot-puericultura"></span> Puericultura
+      </span>
+      <span class="d-flex align-items-center gap-1">
+        <span class="agn-slot-legend agn-slot-cronico"></span> Crônico
+      </span>
+    </div>
+  </div>
+</div>
+</th:block>
+</html>

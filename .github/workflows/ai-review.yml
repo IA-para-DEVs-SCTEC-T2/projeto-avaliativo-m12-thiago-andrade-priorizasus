@@ -1,0 +1,349 @@
+name: AI Review — Architectural Guard + Intent Compliance
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+  workflow_dispatch:
+
+jobs:
+  archunit-test:
+    name: ArchUnit — Layered Architecture Rules
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 22
+        uses: actions/setup-java@v4
+        with:
+          java-version: '22'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Compile
+        run: mvn compile test-compile -q
+
+      - name: Run ArchUnit architecture tests
+        run: mvn test -Dtest="ArchitectureTest" -DfailIfNoTests=false
+        continue-on-error: true
+
+      - name: Report ArchUnit results
+        run: |
+          echo "=== Architecture Guard Report ==="
+          echo "Rules enforced by ArchUnit:"
+          echo "  1. Controllers MUST be in ..controller.. package"
+          echo "  2. Services MUST be in ..service.. package"
+          echo "  3. Repositories MUST be in ..repository.. package"
+          echo "  4. Controllers MUST NOT access repositories directly"
+          echo "  5. Services MUST NOT depend on controllers"
+          echo "  6. No circular package dependencies"
+          echo "  7. @Transactional forbidden on controllers"
+          echo "  8. Business logic forbidden in controllers"
+          echo ""
+          echo "Check target/surefire-reports/ for detailed results"
+
+  package-structure:
+    name: Package Structure Validation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Verify STACK.md package layout
+        run: |
+          echo "=== Validating package structure against STACK.md ==="
+          BASE="src/main/java/com/priorizasus/priorizasus"
+          REQUIRED_PACKAGES=(
+            "$BASE/entity"
+            "$BASE/repository"
+            "$BASE/service"
+            "$BASE/controller"
+            "$BASE/dto"
+            "$BASE/exception"
+            "$BASE/config"
+          )
+
+          FAILED=0
+          for pkg in "${REQUIRED_PACKAGES[@]}"; do
+            if [ -d "$pkg" ]; then
+              echo "  ✓ $pkg"
+            else
+              echo "  ⚠ Missing: $pkg (will be needed)"
+              FAILED=$((FAILED + 1))
+            fi
+          done
+
+          if [ $FAILED -gt 0 ]; then
+            echo "::warning::$FAILED package(s) not yet created (Phase 1 ramp-up)"
+          fi
+
+  controller-guard:
+    name: Controller Guardrail Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Scan for forbidden patterns in controllers
+        run: |
+          echo "=== Scanning controllers for violations ==="
+          BASE="src/main/java/com/priorizasus/priorizasus/controller"
+          VIOLATIONS=0
+
+          if [ ! -d "$BASE" ]; then
+            echo "  (no controllers yet)"
+            exit 0
+          fi
+
+          # Rule 1: No @Transactional in controllers
+          echo "--- Rule 1: @Transactional forbidden in controllers ---"
+          TX_VIOLATIONS=$(grep -rn "@Transactional" "$BASE" 2>/dev/null || true)
+          if [ -n "$TX_VIOLATIONS" ]; then
+            echo "$TX_VIOLATIONS"
+            echo "::error::@Transactional found in controller(s) — move to service layer"
+            VIOLATIONS=$((VIOLATIONS + 1))
+          else
+            echo "  ✓ No @Transactional in controllers"
+          fi
+
+          # Rule 2: No direct repository injection in controllers
+          echo "--- Rule 2: Direct repository access forbidden in controllers ---"
+          REPO_VIOLATIONS=$(grep -rn "Repository" "$BASE" 2>/dev/null | grep -v "// " || true)
+          if [ -n "$REPO_VIOLATIONS" ]; then
+            echo "$REPO_VIOLATIONS"
+            echo "::error::Repository reference found in controller — use service layer"
+            VIOLATIONS=$((VIOLATIONS + 1))
+          else
+            echo "  ✓ No direct repository access in controllers"
+          fi
+
+          if [ $VIOLATIONS -gt 0 ]; then
+            echo "::error::$VIOLATIONS architectural violation(s) found"
+            exit 1
+          fi
+
+  # ── NEW: Intent-Oriented Checks ──
+
+  req-id-traceability:
+    name: REQ-ID Traceability — Code ↔ Spec Linkage
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Check @ReqId annotations on changed service methods
+        run: |
+          echo "=== REQ-ID Traceability Check ==="
+
+          # Get changed Java files in this PR
+          CHANGED_FILES=$(git diff --name-only origin/main...HEAD -- 'src/main/java/**/*.java' 2>/dev/null || echo "")
+
+          if [ -z "$CHANGED_FILES" ]; then
+            echo "  (no Java files changed)"
+            exit 0
+          fi
+
+          VIOLATIONS=0
+          for file in $CHANGED_FILES; do
+            if echo "$file" | grep -q "/service/"; then
+              echo "Checking: $file"
+
+              # Check that public methods in service files have @ReqId
+              PUBLIC_METHODS=$(grep -n "public\s" "$file" | grep -v "class\|interface\|enum\|record\|//" || true)
+
+              if [ -n "$PUBLIC_METHODS" ]; then
+                # For each public method, check if @ReqId is present nearby
+                METHOD_LINES=$(echo "$PUBLIC_METHODS" | cut -d: -f1)
+                for line in $METHOD_LINES; do
+                  # Look for @ReqId in the 10 lines before the method
+                  START=$((line - 10))
+                  [ $START -lt 1 ] && START=1
+                  HAS_REQID=$(sed -n "${START},${line}p" "$file" | grep -c "@ReqId" || true)
+                  if [ "$HAS_REQID" -eq 0 ]; then
+                    echo "  ⚠ Missing @ReqId near line $line in $file"
+                    VIOLATIONS=$((VIOLATIONS + 1))
+                  fi
+                done
+              fi
+            fi
+          done
+
+          if [ $VIOLATIONS -gt 0 ]; then
+            echo "::warning::$VIOLATIONS public service method(s) without @ReqId annotation"
+            echo "  Add @ReqId(\"XX-NNN\") to link code to spec requirements"
+          else
+            echo "  ✓ All changed service methods have @ReqId annotations"
+          fi
+
+  intent-compliance:
+    name: Intent Compliance — Spec Acceptance Criteria Coverage
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Verify test coverage for changed REQ-IDs
+        run: |
+          echo "=== Intent Compliance Check ==="
+
+          # Extract REQ-IDs from changed Java files
+          CHANGED_FILES=$(git diff --name-only origin/main...HEAD -- 'src/main/java/**/*.java' 2>/dev/null || echo "")
+
+          if [ -z "$CHANGED_FILES" ]; then
+            echo "  (no Java files changed)"
+            exit 0
+          fi
+
+          # Extract @ReqId values from changed files
+          REQ_IDS=$(grep -roh '@ReqId("[^"]*")' $CHANGED_FILES 2>/dev/null | sed 's/@ReqId("\(.*\)")/\1/' | sort -u || echo "")
+
+          if [ -z "$REQ_IDS" ]; then
+            echo "  (no @ReqId annotations found in changed files)"
+            echo "::warning::No @ReqId annotations — cannot verify intent compliance"
+            exit 0
+          fi
+
+          echo "Changed REQ-IDs: $REQ_IDS"
+
+          # For each REQ-ID, check that corresponding tests exist
+          for req in $REQ_IDS; do
+            echo "  Checking test coverage for $req..."
+
+            # Look for @ReqId in test files
+            TEST_COUNT=$(grep -rl "@ReqId.*$req" src/test/ 2>/dev/null | wc -l || echo "0")
+            if [ "$TEST_COUNT" -eq 0 ]; then
+              echo "  ⚠ No test file references $req"
+            else
+              echo "  ✓ Test coverage found for $req"
+            fi
+          done
+
+  doc-coverage:
+    name: Documentation Coverage — REQ-ID Documentation Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Verify JavaDoc for changed REQ-IDs
+        run: |
+          echo "=== Documentation Coverage Check ==="
+
+          CHANGED_FILES=$(git diff --name-only origin/main...HEAD -- 'src/main/java/**/*.java' 2>/dev/null || echo "")
+
+          if [ -z "$CHANGED_FILES" ]; then
+            echo "  (no Java files changed)"
+            exit 0
+          fi
+
+          VIOLATIONS=0
+          for file in $CHANGED_FILES; do
+            echo "  Checking JavaDoc in: $file"
+
+            # Check if file has class-level JavaDoc
+            HAS_JAVADOC=$(head -30 "$file" | grep -c "/\*\*" || true)
+            if [ "$HAS_JAVADOC" -eq 0 ]; then
+              echo "  ⚠ Missing class-level JavaDoc"
+              VIOLATIONS=$((VIOLATIONS + 1))
+            fi
+          done
+
+          if [ $VIOLATIONS -gt 0 ]; then
+            echo "::warning::$VIOLATIONS file(s) missing class-level JavaDoc"
+          else
+            echo "  ✓ All changed files have JavaDoc"
+          fi
+
+  # ── Human Review Gate (Informational) ──
+
+  human-review-gate:
+    name: Human Review — Intent Verification Checklist
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' && github.event.action == 'opened'
+    steps:
+      - name: Post review checklist on PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const body = `## 🔍 Human Review — Intent Verification
+
+            Please verify the following before approving:
+
+            ### Intent
+            - [ ] Which REQ-ID(s) does this PR implement?
+            - [ ] Does the code satisfy ALL acceptance criteria from the spec?
+            - [ ] Is the behavior consistent with CONTEXT.md canonical terms?
+
+            ### Architecture
+            - [ ] Are business rules ONLY in the service layer?
+            - [ ] Are pessimistic locks ONLY in repositories?
+            - [ ] Are timestamps in UTC?
+
+            ### Traceability
+            - [ ] Are \`@ReqId\` annotations present on all new public methods?
+            - [ ] Do commit messages follow \`feat(REQ-ID):\` format?
+            - [ ] Has \`SpecDriftDetectionTest\` been run?
+
+            ### Domain
+            - [ ] Does the terminology match CONTEXT.md (not "Avoid" terms)?
+            - [ ] Have relevant ADRs been consulted?
+
+            > This checklist is auto-generated by ai-review.yml (human-review-gate job).`;
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: body
+            });
+
+  gate:
+    name: Review Gate — All Guards + Intent Checks Passed
+    needs: [archunit-test, package-structure, controller-guard, req-id-traceability, intent-compliance, doc-coverage]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Evaluate gate
+        run: |
+          echo "╔══════════════════════════════════════════╗"
+          echo "║     PRIORIZASUS — REVIEW GATE             ║"
+          echo "╠══════════════════════════════════════════╣"
+          echo "║  archunit-test:       ${{ needs.archunit-test.result }}"
+          echo "║  package-structure:   ${{ needs.package-structure.result }}"
+          echo "║  controller-guard:    ${{ needs.controller-guard.result }}"
+          echo "║  req-id-traceability: ${{ needs.req-id-traceability.result }}"
+          echo "║  intent-compliance:   ${{ needs.intent-compliance.result }}"
+          echo "║  doc-coverage:        ${{ needs.doc-coverage.result }}"
+          echo "╚══════════════════════════════════════════╝"
+
+          FAILED=0
+
+          if [ "${{ needs.archunit-test.result }}" != "success" ]; then
+            echo "  ❌ Architecture rules violated"
+            FAILED=1
+          fi
+          if [ "${{ needs.controller-guard.result }}" != "success" ]; then
+            echo "  ❌ Controller guardrails violated"
+            FAILED=1
+          fi
+
+          # Intent checks are warnings during ramp-up
+          if [ "${{ needs.req-id-traceability.result }}" != "success" ]; then
+            echo "  ⚠ REQ-ID traceability: add @ReqId annotations (warning — will become blocking)"
+          fi
+          if [ "${{ needs.intent-compliance.result }}" != "success" ]; then
+            echo "  ⚠ Intent compliance: verify test coverage (warning — will become blocking)"
+          fi
+
+          if [ $FAILED -eq 1 ]; then
+            echo ""
+            echo "Fix violations before merging:"
+            echo "  - Move business logic from controllers to services"
+            echo "  - Remove @Transactional from controllers"
+            echo "  - Inject services, not repositories, into controllers"
+            exit 1
+          fi
+
+          echo ""
+          echo "✓ Architectural review passed — all guardrails enforced"

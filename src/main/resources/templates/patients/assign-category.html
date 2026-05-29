@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: layout}">
+<th:block th:fragment="content">
+<div class="row justify-content-center">
+  <div class="col-lg-6">
+
+    <div class="card">
+      <div class="card-header">
+        <h5 class="mb-0">
+          <i class="bi bi-tag me-2"></i>Atribuir Categoria —
+          <span th:text="${patient.name}">Paciente</span>
+        </h5>
+      </div>
+      <div class="card-body">
+        <form th:action="@{/patients/{id}/categories(id=${patient.id})}" method="post">
+
+          <!-- Category Type -->
+          <div class="mb-3">
+            <label for="categoryType" class="form-label">Tipo de Categoria <span style="color: var(--agn-error);">*</span></label>
+            <select id="categoryType" name="categoryType" class="form-select" required
+                    onchange="toggleCategoryFields(this.value)">
+              <option value="">Selecione...</option>
+              <option value="PRENATAL">Pré-Natal</option>
+              <option value="CHILD">Puericultura (0–3 anos)</option>
+              <option value="CHRONIC">Condição Crônica (Diabetes, Hipertensão, Saúde Mental, Renovação de Receita, entre outros)</option>
+            </select>
+          </div>
+
+          <!-- PRENATAL Fields -->
+          <div id="prenatalFields" style="display:none;">
+            <div class="alert small" style="background-color: var(--agn-tint-sky); border-color: var(--agn-tint-sky);">
+              <i class="bi bi-info-circle me-1"></i>
+              A data-alvo será calculada automaticamente com base nas semanas gestacionais.
+            </div>
+            <div class="mb-3">
+              <label for="ultrasoundDate" class="form-label">Data do Ultrassom</label>
+              <input type="date" id="ultrasoundDate" name="ultrasoundDate"
+                     class="form-control" th:max="${today}">
+            </div>
+            <div class="mb-3">
+              <label for="gestationalWeeks" class="form-label">Semanas Gestacionais (no ultrassom)</label>
+              <input type="number" id="gestationalWeeks" name="gestationalWeeks"
+                     class="form-control" min="1" max="42" placeholder="Ex: 24">
+            </div>
+          </div>
+
+          <!-- CHILD Fields -->
+          <div id="childFields" style="display:none;">
+            <div class="alert small" style="background-color: var(--agn-tint-sky); border-color: var(--agn-tint-sky);">
+              <i class="bi bi-info-circle me-1"></i>
+              Os marcos seguem o calendário do Ministério da Saúde.
+            </div>
+            <div class="mb-3">
+              <label for="lastMilestone" class="form-label">Último Marco Completado</label>
+              <select id="lastMilestone" name="lastMilestone" class="form-select">
+                <option value="">Nenhum (recém-nascido)</option>
+                <option value="DAY_7">Dia 7</option>
+                <option value="DAY_30">Dia 30</option>
+                <option value="MONTH_2">Mês 2</option>
+                <option value="MONTH_4">Mês 4</option>
+                <option value="MONTH_6">Mês 6</option>
+                <option value="MONTH_9">Mês 9</option>
+                <option value="MONTH_12">Mês 12</option>
+                <option value="MONTH_18">Mês 18</option>
+                <option value="MONTH_24">Mês 24</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- CHRONIC Fields -->
+          <div id="chronicFields" style="display:none;">
+            <div class="alert alert-info small">
+              <i class="bi bi-info-circle me-1"></i>
+              Consultas a cada 60 dias. Peso base: 200 pontos.
+            </div>
+            <div class="mb-3">
+              <label for="conditionType" class="form-label">Condição</label>
+              <select id="conditionType" name="conditionType" class="form-select">
+                <option value="DIABETES">Diabetes</option>
+                <option value="HYPERTENSION">Hipertensão</option>
+                <option value="SAUDE_MENTAL">Saúde Mental</option>
+                <option value="RENOVACAO_RECEITA">Renovação de Receita</option>
+                <option value="OTHER">Outra condição crônica</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Submit -->
+          <div class="d-flex gap-2 mt-3">
+            <button type="submit" class="btn btn-primary">
+              <i class="bi bi-check-lg me-1"></i>Atribuir Categoria
+            </button>
+            <a th:href="@{/patients/{id}(id=${patient.id})}" class="btn btn-outline-secondary">
+              Cancelar
+            </a>
+          </div>
+        </form>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script th:inline="javascript">
+  /*<![CDATA[*/
+  function toggleCategoryFields(value) {
+    document.getElementById('prenatalFields').style.display = (value === 'PRENATAL') ? 'block' : 'none';
+    document.getElementById('childFields').style.display = (value === 'CHILD') ? 'block' : 'none';
+    document.getElementById('chronicFields').style.display = (value === 'CHRONIC') ? 'block' : 'none';
+  }
+  /*]]>*/
+</script>
+</th:block>
+</html>
