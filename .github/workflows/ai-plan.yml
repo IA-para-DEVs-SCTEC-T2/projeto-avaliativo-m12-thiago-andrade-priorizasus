@@ -3,6 +3,7 @@ name: AI Plan — Intent Validation
 on:
   workflow_call:
   pull_request:
+    branches-ignore: [main]
     paths:
       - '.specs/**'
       - 'docs/**'
