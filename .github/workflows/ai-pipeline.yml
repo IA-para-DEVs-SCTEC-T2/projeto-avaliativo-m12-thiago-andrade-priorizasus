@@ -6,6 +6,12 @@ on:
     branches: [main]
     types: [opened, synchronize, reopened]
 
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+  actions: read
+
 jobs:
   # ── Phase 1: Plan Validation ──
   plan-gate:
@@ -33,7 +39,7 @@ jobs:
   # ── Phase 5: Evidence Collection ──
   evidence-collect:
     name: 5️⃣ Evidence — Collect Approval Data
-    needs: [review-gate]
+    needs: [plan-gate, build-gate, spec-drift-gate, review-gate]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -73,7 +79,7 @@ jobs:
   # ── Phase 6: Final Approval Gate ──
   approval-gate:
     name: 🏁 APPROVAL GATE — Final Decision
-    needs: [evidence-collect]
+    needs: [plan-gate, build-gate, spec-drift-gate, review-gate, evidence-collect]
     runs-on: ubuntu-latest
     if: always()
     steps:
@@ -88,7 +94,7 @@ jobs:
           DRIFT="${{ needs.spec-drift-gate.result }}"
           REVIEW="${{ needs.review-gate.result }}"
 
-          echo "║  Plan Gate:    $PLANE"
+          echo "║  Plan Gate:    $PLAN"
           echo "║  Build Gate:   $BUILD"
           echo "║  Drift Gate:   $DRIFT"
           echo "║  Review Gate:  $REVIEW"
