@@ -230,7 +230,7 @@ Fora do escopo:
 
 ### Prints / GIFs
 
-> **PENDENTE** — insira o GIF aqui
+![alt text](priorizasus_gif.gif)
 
 ---
 
