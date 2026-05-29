@@ -1,7 +1,9 @@
 name: AI Spec Drift Check — Spec↔Code Semantic Alignment
 
 on:
+  workflow_call:
   pull_request:
+    branches-ignore: [main]
     paths:
       - 'src/main/java/**/*.java'
       - '.specs/**'
