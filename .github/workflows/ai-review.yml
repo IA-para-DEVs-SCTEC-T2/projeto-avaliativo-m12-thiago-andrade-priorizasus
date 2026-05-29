@@ -98,7 +98,7 @@ jobs:
 
           # Rule 1: No @Transactional in controllers
           echo "--- Rule 1: @Transactional forbidden in controllers ---"
-          TX_VIOLATIONS=$(grep -rn "@Transactional" "$BASE" 2>/dev/null || true)
+          TX_VIOLATIONS=$(grep -rn "@Transactional" "$BASE" 2>/dev/null | grep -vE ':[[:space:]]*(\*|//)' || true)
           if [ -n "$TX_VIOLATIONS" ]; then
             echo "$TX_VIOLATIONS"
             echo "::error::@Transactional found in controller(s) — move to service layer"
