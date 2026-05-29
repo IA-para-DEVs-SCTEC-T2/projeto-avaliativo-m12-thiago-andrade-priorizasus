@@ -1,8 +1,9 @@
 name: AI Build — Compile, Test & Format
 
 on:
+  workflow_call:
   push:
-    branches: ['**']
+    branches: [main]
   pull_request:
     branches: ['**']
 

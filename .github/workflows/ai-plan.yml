@@ -1,6 +1,7 @@
 name: AI Plan — Intent Validation
 
 on:
+  workflow_call:
   pull_request:
     paths:
       - '.specs/**'
