@@ -1,0 +1,146 @@
+name: AI Plan — Intent Validation
+
+on:
+  pull_request:
+    paths:
+      - '.specs/**'
+      - 'docs/**'
+      - 'CONTEXT.md'
+  workflow_dispatch:
+    inputs:
+      validate_terminology:
+        description: 'Validate CONTEXT.md terminology coverage'
+        type: boolean
+        default: true
+
+jobs:
+  spec-structure-check:
+    name: Validate Spec Structure & Cross-References
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 22
+        uses: actions/setup-java@v4
+        with:
+          java-version: '22'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Run SpecConsistencyTest (validates all spec structure, REQ-IDs, cross-refs, ADRs)
+        run: mvn test -Dtest="SpecConsistencyTest" -DfailIfNoTests=false
+
+  terminology-check:
+    name: Validate CONTEXT.md Terminology Coverage
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Check CONTEXT.md exists and is non-empty
+        run: |
+          if [ ! -f "CONTEXT.md" ]; then
+            echo "::error::CONTEXT.md is missing — it is the canonical terminology source"
+            exit 1
+          fi
+          WORD_COUNT=$(wc -w < CONTEXT.md)
+          if [ "$WORD_COUNT" -lt 200 ]; then
+            echo "::error::CONTEXT.md is too short ($WORD_COUNT words) — must be comprehensive"
+            exit 1
+          fi
+          echo "CONTEXT.md: $WORD_COUNT words ✓"
+
+      - name: Check for canonical term usage in specs
+        run: |
+          echo "=== Checking that specs use CONTEXT.md canonical terms ==="
+          # Extract Avoid terms from CONTEXT.md — specs should NOT use these
+          echo "Checking for disallowed ('Avoid') terms in spec files..."
+          AVOID_TERMS=$(grep -oP '_Avoid_:\s*\K.*' CONTEXT.md | tr ',' '\n' | sed 's/^ *//g' | grep -v '^$')
+          VIOLATIONS=0
+          while IFS= read -r term; do
+            TERM=$(echo "$term" | xargs)
+            if [ -n "$TERM" ]; then
+              FOUND=$(grep -r "$TERM" .specs/features/ 2>/dev/null | grep -v "Avoid" | grep -v "_Avoid_" || true)
+              if [ -n "$FOUND" ]; then
+                echo "  ✗ Term '$TERM' found in specs (should use canonical term instead)"
+                echo "$FOUND" | head -3
+                VIOLATIONS=$((VIOLATIONS + 1))
+              fi
+            fi
+          done <<< "$AVOID_TERMS"
+          if [ $VIOLATIONS -gt 0 ]; then
+            echo "::warning::$VIOLATIONS disallowed term(s) found in specs"
+          else
+            echo "  ✓ No disallowed terms found"
+          fi
+
+  cross-reference-check:
+    name: Cross-Reference Validation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Validate spec cross-references
+        run: |
+          echo "=== Validating spec cross-references ==="
+          FAILED=0
+          SPEC_DIR=".specs/features"
+
+          # Check that dependencies declared in each spec point to existing files
+          for spec in $(find $SPEC_DIR -name "spec.md"); do
+            echo "Checking dependencies in: $spec"
+            # Extract "Dependency:" lines
+            DEPS=$(grep -oP 'Dependency:\s*\K.*' "$spec" | tr ',' '\n' | sed 's/^ *//g' || true)
+            while IFS= read -r dep; do
+              if [ -n "$dep" ]; then
+                # Check if referenced spec exists
+                REF=$(echo "$dep" | grep -oP '[a-z-]+/spec\.md' || true)
+                if [ -n "$REF" ]; then
+                  if [ -f "$SPEC_DIR/$REF" ]; then
+                    echo "  ✓ $REF"
+                  else
+                    echo "  ✗ Broken reference: $REF (referenced by $spec)"
+                    FAILED=$((FAILED + 1))
+                  fi
+                fi
+              fi
+            done <<< "$DEPS"
+          done
+
+          if [ $FAILED -gt 0 ]; then
+            echo "::error::$FAILED broken cross-reference(s)"
+            exit 1
+          fi
+
+      - name: Validate REQ-ID uniqueness
+        run: |
+          echo "=== Validating REQ-ID uniqueness across all specs ==="
+          DUPLICATES=$(grep -rohP 'REQ-\d{3}' .specs/features/ | sort | uniq -d)
+          if [ -n "$DUPLICATES" ]; then
+            echo "::error::Duplicate REQ-IDs found: $DUPLICATES"
+            exit 1
+          fi
+          echo "  ✓ All REQ-IDs are unique"
+
+  # Gate: All checks must pass before implementation can proceed
+  gate:
+    name: Plan Gate — All Validations Passed
+    needs: [spec-structure-check, terminology-check, cross-reference-check]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Evaluate gate
+        run: |
+          if [ "${{ needs.spec-structure-check.result }}" == "success" ] && \
+             [ "${{ needs.terminology-check.result }}" == "success" ] && \
+             [ "${{ needs.cross-reference-check.result }}" == "success" ]; then
+            echo "✓ All plan validations passed — ready for implementation"
+          else
+            echo "::error::Plan validation failed — fix issues before proceeding"
+            echo "  spec-structure-check: ${{ needs.spec-structure-check.result }}"
+            echo "  terminology-check: ${{ needs.terminology-check.result }}"
+            echo "  cross-reference-check: ${{ needs.cross-reference-check.result }}"
+            exit 1
+          fi

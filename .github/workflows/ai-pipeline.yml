@@ -1,0 +1,118 @@
+name: AI Unified Pipeline — End-to-End Validation
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+
+jobs:
+  # ── Phase 1: Plan Validation ──
+  plan-gate:
+    name: 1️⃣ Plan — Spec Validation
+    uses: ./.github/workflows/ai-plan.yml
+
+  # ── Phase 2: Build & Test ──
+  build-gate:
+    name: 2️⃣ Build — Compile, Test, Format
+    needs: [plan-gate]
+    uses: ./.github/workflows/ai-build.yml
+
+  # ── Phase 3: Spec Drift Detection ──
+  spec-drift-gate:
+    name: 3️⃣ Spec Drift — Spec↔Code Alignment
+    needs: [build-gate]
+    uses: ./.github/workflows/spec-drift-check.yml
+
+  # ── Phase 4: Intent-Oriented Review ──
+  review-gate:
+    name: 4️⃣ Review — Architecture + Intent
+    needs: [spec-drift-gate]
+    uses: ./.github/workflows/ai-review.yml
+
+  # ── Phase 5: Evidence Collection ──
+  evidence-collect:
+    name: 5️⃣ Evidence — Collect Approval Data
+    needs: [review-gate]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Collect gate statuses
+        run: |
+          echo "=== Pipeline Gate Summary ==="
+          echo "Plan Gate:    ${{ needs.plan-gate.result }}"
+          echo "Build Gate:   ${{ needs.build-gate.result }}"
+          echo "Drift Gate:   ${{ needs.spec-drift-gate.result }}"
+          echo "Review Gate:  ${{ needs.review-gate.result }}"
+
+          # Generate summary JSON
+          cat > pipeline-summary.json << EOF
+          {
+            "pipeline": "ai-pipeline",
+            "runId": "${{ github.run_id }}",
+            "gates": {
+              "plan": "${{ needs.plan-gate.result }}",
+              "build": "${{ needs.build-gate.result }}",
+              "specDrift": "${{ needs.spec-drift-gate.result }}",
+              "review": "${{ needs.review-gate.result }}"
+            },
+            "timestamp": "${{ github.event.head_commit.timestamp }}",
+            "commit": "${{ github.sha }}"
+          }
+          EOF
+          cat pipeline-summary.json
+
+      - name: Upload pipeline summary
+        uses: actions/upload-artifact@v4
+        with:
+          name: pipeline-summary-${{ github.run_id }}
+          path: pipeline-summary.json
+
+  # ── Phase 6: Final Approval Gate ──
+  approval-gate:
+    name: 🏁 APPROVAL GATE — Final Decision
+    needs: [evidence-collect]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Evaluate all gates
+        run: |
+          echo "╔══════════════════════════════════════════╗"
+          echo "║     PRIORIZASUS — APPROVAL GATE           ║"
+          echo "╠══════════════════════════════════════════╣"
+
+          PLAN="${{ needs.plan-gate.result }}"
+          BUILD="${{ needs.build-gate.result }}"
+          DRIFT="${{ needs.spec-drift-gate.result }}"
+          REVIEW="${{ needs.review-gate.result }}"
+
+          echo "║  Plan Gate:    $PLANE"
+          echo "║  Build Gate:   $BUILD"
+          echo "║  Drift Gate:   $DRIFT"
+          echo "║  Review Gate:  $REVIEW"
+          echo "╚══════════════════════════════════════════╝"
+
+          if [ "$PLAN" == "success" ] && \
+             [ "$BUILD" == "success" ] && \
+             [ "$DRIFT" != "failure" ] && \
+             [ "$REVIEW" == "success" ]; then
+            echo ""
+            echo "✅ ALL GATES PASSED — Ready for human review & merge"
+            echo ""
+            echo "   Next steps:"
+            echo "   1. Human reviewer confirms intent-compliance"
+            echo "   2. Merge PR to main"
+            echo "   3. evidence-log.yml auto-records approval"
+          else
+            echo ""
+            echo "❌ APPROVAL GATE FAILED"
+            echo ""
+            echo "   Fix the following before retrying:"
+            [ "$PLAN" != "success" ] && echo "   - Plan: spec structure, REQ-ID uniqueness, cross-references"
+            [ "$BUILD" != "success" ] && echo "   - Build: compilation, tests, spotless, coverage"
+            [ "$DRIFT" == "failure" ] && echo "   - Spec Drift: add @ReqId annotations, align code with specs"
+            [ "$REVIEW" != "success" ] && echo "   - Review: architecture rules, REQ-ID traceability, doc coverage"
+            exit 1
+          fi
