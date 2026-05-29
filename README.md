@@ -230,7 +230,7 @@ Fora do escopo:
 
 ### Prints / GIFs
 
-![alt text](priorizasus_gif.gif)
+<img width="776" height="346" alt="priorizasus_gif" src="https://github.com/user-attachments/assets/eda12ae2-2ccc-4182-8691-fb8d2851b0fa" />
 
 ---
 
