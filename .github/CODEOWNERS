@@ -1,0 +1,28 @@
+# PRIORIZASUS — Code Owners
+#
+# These rules require review from the specified owners before merging.
+# Configure branch protection in GitHub UI: Settings → Branches → Add Rule.
+#
+# Pattern                    Owners (GitHub usernames — replace with actual team)
+# ───────                    ──────────────────────────────────────────────────
+
+# All Java source code requires review
+*.java                       @PRIORIZASUS/developers
+
+# Spec layer — intent & requirements
+.specs/**                    @PRIORIZASUS/architects
+
+# Architecture decisions
+docs/adr/**                  @PRIORIZASUS/architects
+
+# Traceability matrix — formal approval evidence
+docs/TRACEABILITY.md         @PRIORIZASUS/architects
+
+# CI/CD pipelines — infrastructure changes
+.github/workflows/**         @PRIORIZASUS/devops
+
+# Canonical terminology — domain language
+CONTEXT.md                   @PRIORIZASUS/architects
+
+# AI instruction rules — agent behavior
+.github/copilot-instructions.md  @PRIORIZASUS/architects
