@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: layout}">
+<th:block th:fragment="content">
+<div class="row justify-content-center">
+  <div class="col-lg-5">
+
+    <!-- Error Alert -->
+    <div th:if="${errorMessage}" class="alert alert-dismissible fade show" role="alert"
+         style="background-color: var(--agn-tint-rose); border-color: var(--agn-tint-rose);">
+      <i class="bi bi-exclamation-triangle me-2"></i>
+      <span th:text="${errorMessage}">Mensagem de erro</span>
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <!-- Success Alert -->
+    <div th:if="${successMessage}" class="alert alert-dismissible fade show" role="alert"
+         style="background-color: var(--agn-tint-mint); border-color: var(--agn-tint-mint);">
+      <i class="bi bi-check-circle me-2"></i>
+      <span th:text="${successMessage}">Mensagem de sucesso</span>
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <div class="card">
+      <div class="card-body text-center py-5">
+        <i class="bi bi-calendar-check display-1 mb-3" style="color: var(--agn-purple);"></i>
+        <h3>Agendamento de Consultas</h3>
+        <p style="color: var(--agn-steel);">
+          Digite seu CPF para consultar seus horários reservados
+          e confirmar seus agendamentos.
+        </p>
+
+        <form th:action="@{/booking/lookup}" method="post" class="mt-4">
+          <div class="mb-3">
+            <label for="cpf" class="form-label fw-semibold">CPF</label>
+            <input type="text" id="cpf" name="cpf"
+                   class="form-control form-control-lg text-center"
+                   placeholder="000.000.000-00"
+                   maxlength="14"
+                   data-cpf-mask
+                   required
+                   autofocus>
+            <div class="form-text">Digite apenas os números do seu CPF.</div>
+          </div>
+          <button type="submit" class="btn btn-primary btn-lg w-100">
+            <i class="bi bi-search me-2"></i>Buscar
+          </button>
+        </form>
+
+        <hr class="my-4">
+        <small style="color: var(--agn-steel);">
+          <i class="bi bi-info-circle me-1"></i>
+          Não sabe seu CPF? Procure a recepção da UBS.
+        </small>
+      </div>
+    </div>
+
+  </div>
+</div>
+</th:block>
+</html>

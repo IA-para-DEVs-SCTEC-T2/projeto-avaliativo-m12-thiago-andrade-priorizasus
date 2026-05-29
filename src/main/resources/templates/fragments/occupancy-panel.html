@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<!--
+  Reusable occupancy panel widget.
+  Usage: <th:block th:replace="~{fragments/occupancy-panel :: occupancyPanel(${occupancy})}"/>
+
+  Guardrail G6: All percentages calculated by OccupancyService, templates only display.
+  Guardrail G14: Uses canonical terms: PRENATAL, CHILD, CHRONIC, Ocupação.
+-->
+<th:block th:fragment="occupancyPanel(occupancy)">
+<div class="card" th:if="${occupancy != null}">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <h5 class="card-title mb-0">
+      <i class="bi bi-bar-chart-fill me-2"></i>Ocupação da Semana
+    </h5>
+    <span class="badge fs-6"
+          th:classappend="${occupancy.utilizationPercent >= 80} ? 'bg-success' :
+                          (${occupancy.utilizationPercent >= 60} ? 'badge-orange' : 'bg-danger')"
+          th:text="${occupancy.utilizationPercent} + '%'">85%</span>
+  </div>
+  <div class="card-body">
+    <!-- Progress Bar -->
+    <div class="progress mb-3" style="height: 24px;">
+      <div class="progress-bar fw-bold"
+           th:classappend="${occupancy.utilizationPercent >= 80} ? 'bg-success' :
+                           (${occupancy.utilizationPercent >= 60} ? 'bg-warning' : 'bg-danger')"
+           th:style="'width: ' + ${occupancy.utilizationPercent} + '%'"
+           th:text="${occupancy.utilizationPercent} + '%'"
+           role="progressbar">
+      </div>
+    </div>
+
+    <!-- Slot Counts -->
+    <div class="row g-2 text-center small">
+      <div class="col-3">
+        <div class="border rounded p-2">
+          <div class="fw-bold text-success" th:text="${occupancy.bookedSlots}">0</div>
+          <div style="color: var(--agn-steel);">Agendados</div>
+        </div>
+      </div>
+      <div class="col-3">
+        <div class="border rounded p-2">
+          <div class="fw-bold text-warning" th:text="${occupancy.reservedSlots}">0</div>
+          <div style="color: var(--agn-steel);">Reservados</div>
+        </div>
+      </div>
+      <div class="col-3">
+        <div class="border rounded p-2">
+          <div class="fw-bold" style="color: var(--agn-steel);" th:text="${occupancy.availableSlots}">0</div>
+          <div style="color: var(--agn-steel);">Disponíveis</div>
+        </div>
+      </div>
+      <div class="col-3">
+        <div class="border rounded p-2">
+          <div class="fw-bold text-danger" th:text="${occupancy.cancelledSlots + occupancy.expiredSlots}">0</div>
+          <div class="text-muted">Cancelados/Expirados</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Per-Category Alerts -->
+    <div class="mt-3" th:if="${occupancy.categoryBreakdown != null && !occupancy.categoryBreakdown.isEmpty()}">
+      <div class="d-flex gap-2 flex-wrap">
+        <th:block th:each="entry : ${occupancy.categoryBreakdown}">
+          <span class="badge fs-6"
+                th:classappend="${entry.value.coveragePercent >= 80} ? 'bg-success' :
+                                (${entry.value.coveragePercent >= 60} ? 'bg-warning text-dark' : 'bg-danger')">
+            <span th:text="${entry.key}">PRENATAL</span>:
+            <span th:text="${entry.value.bookedCount}">0</span>/
+            <span th:text="${entry.value.eligibleCount}">0</span>
+            (<span th:text="${entry.value.coveragePercent}">0</span>%)
+          </span>
+        </th:block>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Empty State -->
+<div class="card shadow-sm" th:unless="${occupancy != null}">
+  <div class="card-body text-center text-muted py-4">
+    <i class="bi bi-bar-chart display-4"></i>
+    <p class="mt-2">Nenhum dado de ocupação disponível.</p>
+  </div>
+</div>
+</th:block>
+</html>

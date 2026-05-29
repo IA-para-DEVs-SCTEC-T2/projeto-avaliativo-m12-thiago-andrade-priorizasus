@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: layout}">
+<th:block th:fragment="content">
+<div class="row justify-content-center">
+  <div class="col-xl-10">
+
+    <div th:if="${infoMessage}" class="alert alert-info d-flex align-items-center mb-3" role="alert">
+      <i class="bi bi-info-circle me-2"></i>
+      <span th:text="${infoMessage}">Info</span>
+    </div>
+
+    <div th:if="${successMessage}" class="alert alert-success d-flex align-items-center mb-3" role="alert">
+      <i class="bi bi-check-circle me-2"></i>
+      <span th:text="${successMessage}">Sucesso</span>
+    </div>
+
+    <div th:if="${errorMessage}" class="alert alert-danger d-flex align-items-center mb-3" role="alert">
+      <i class="bi bi-exclamation-triangle me-2"></i>
+      <span th:text="${errorMessage}">Erro</span>
+    </div>
+
+    <div class="card mb-3">
+      <div class="card-body d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2">
+        <div>
+          <div class="small text-uppercase" style="color: var(--agn-steel); letter-spacing: .04em;">Paciente</div>
+          <h3 class="mb-1" th:text="${patient.name}">Nome do Paciente</h3>
+          <div class="small" style="color: var(--agn-steel);">
+            CPF:
+            <span th:if="${patient.cpf != null && patient.cpf.length() == 11}"
+                  th:text="${#strings.substring(patient.cpf, 0, 3) + '.' + #strings.substring(patient.cpf, 3, 6) + '.' + #strings.substring(patient.cpf, 6, 9) + '-' + #strings.substring(patient.cpf, 9, 11)}">000.000.000-00</span>
+            <span th:unless="${patient.cpf != null && patient.cpf.length() == 11}" th:text="${patient.cpf}">—</span>
+          </div>
+        </div>
+        <div class="text-md-end">
+          <div class="small text-uppercase" style="color: var(--agn-steel); letter-spacing: .04em;">Agendamentos</div>
+          <div class="display-6 fw-bold mb-0" th:text="${appointments != null ? appointments.size() : 0}">0</div>
+           <div th:if="${selectedForWeek}" class="badge-compact mt-2">Selecionado nesta semana</div>
+          <div th:unless="${selectedForWeek}"
+               class="badge-compact booking-status-pending mt-2">
+            <i class="bi bi-exclamation-triangle-fill me-1"></i>Aguardando seleção
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row g-3">
+      <div class="col-lg-6">
+        <div class="card h-100">
+          <div class="card-header bg-white border-0 pt-3 pb-0">
+            <h5 class="mb-0"><i class="bi bi-clock me-2"></i>Horários Disponíveis</h5>
+            <small class="text-muted">Escolha um horário livre para transformar em agendamento.</small>
+          </div>
+          <div class="card-body">
+            <div th:if="${!selectedForWeek}"
+                 class="alert alert-warning booking-selection-alert mb-3 d-flex align-items-start gap-2" role="alert">
+              <i class="bi bi-exclamation-triangle-fill flex-shrink-0 mt-1"></i>
+              <div>
+                <div class="fw-semibold">Seleção pendente</div>
+                <div>Este paciente ainda não está na lista dos 40 selecionados desta semana.</div>
+              </div>
+            </div>
+
+            <div th:if="${selectedForWeek && hasConfirmedAppointmentThisWeek}"
+                 class="alert alert-success d-flex align-items-start gap-2 mb-3" role="alert"
+                 style="background-color: var(--agn-tint-mint); border-color: var(--agn-tint-mint); color: var(--agn-charcoal);">
+              <i class="bi bi-check-circle-fill flex-shrink-0 mt-1"></i>
+              <div>
+                <div class="fw-semibold">Horário já selecionado</div>
+                <div>Este paciente já possui um agendamento confirmado nesta semana. A seleção foi bloqueada.</div>
+              </div>
+            </div>
+
+            <div th:if="${selectedForWeek && (availableSlotsByDay == null || availableSlotsByDay.isEmpty())}"
+                 class="text-center py-4 text-muted">
+              <i class="bi bi-inbox display-4 d-block mb-2"></i>
+              Nenhum horário disponível para esta semana.
+            </div>
+
+            <div th:if="${selectedForWeek && availableSlotsByDay != null && !availableSlotsByDay.isEmpty()}"
+                 class="accordion booking-slot-accordion" id="availableSlotsAccordion">
+              <div th:each="dayEntry, dayStat : ${availableSlotsByDay.entrySet()}" class="accordion-item mb-2">
+                <h2 class="accordion-header" th:id="${'slot-day-heading-' + dayStat.index}">
+                  <button class="accordion-button collapsed booking-slot-toggle" type="button"
+                          data-bs-toggle="collapse"
+                          th:data-bs-target="${'#slot-day-collapse-' + dayStat.index}"
+                          aria-expanded="false"
+                          th:aria-controls="${'slot-day-collapse-' + dayStat.index}">
+                    <div class="d-flex w-100 justify-content-between align-items-center gap-3 flex-wrap">
+                      <div>
+                        <div class="booking-slot-date fw-semibold"
+                             th:text="${#temporals.format(dayEntry.key, 'dd/MM/yyyy')}">29/05/2026</div>
+                        <div class="small" style="color: var(--agn-steel);">Horários disponíveis neste dia</div>
+                      </div>
+                      <span class="badge-compact booking-slot-badge"
+                            th:text="${dayEntry.value.size()} + ' horários'">4 horários</span>
+                    </div>
+                  </button>
+                </h2>
+                <div th:id="${'slot-day-collapse-' + dayStat.index}"
+                     class="accordion-collapse collapse"
+                     th:attr="aria-labelledby=${'slot-day-heading-' + dayStat.index}"
+                     data-bs-parent="#availableSlotsAccordion">
+                  <div class="accordion-body p-3">
+                    <div th:each="slot : ${dayEntry.value}" class="booking-slot-item mb-2 mb-lg-3">
+                      <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+                        <div class="booking-slot-meta">
+                          <div>
+                            <div class="booking-slot-time fw-semibold"
+                                 th:if="${slot.slotDateTime != null}"
+                                 th:text="${#strings.substring(clinicTimeZone.formatForDisplay(slot.slotDateTime), 11, 16)}">--:--</div>
+                            <div class="small" style="color: var(--agn-steel);">Horário livre para confirmação</div>
+                          </div>
+                          <span class="badge-compact booking-slot-badge">Livre</span>
+                        </div>
+
+                        <form th:if="${token != null}" th:action="@{/booking/select/{tkn}(tkn=${token})}" method="post" class="m-0">
+                          <input type="hidden" name="slotId" th:value="${slot.id}">
+                          <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                          <button type="submit" class="btn btn-success btn-slot-select" th:classappend="${hasConfirmedAppointmentThisWeek} ? '' : ' agn-btn-pulse'" th:disabled="${hasConfirmedAppointmentThisWeek}">
+                            <i class="bi bi-hand-index me-1"></i>
+                            <span th:text="${hasConfirmedAppointmentThisWeek} ? 'Horário já selecionado' : 'Selecionar este horário'">Selecionar este horário</span>
+                          </button>
+                        </form>
+                        <form th:if="${token == null}" th:action="@{/booking/{patientId}/direct(patientId=${patient.id})}" method="post" class="m-0">
+                          <input type="hidden" name="slotId" th:value="${slot.id}">
+                          <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                          <button type="submit" class="btn btn-success btn-slot-select" th:classappend="${hasConfirmedAppointmentThisWeek} ? '' : ' agn-btn-pulse'" th:disabled="${hasConfirmedAppointmentThisWeek}">
+                            <i class="bi bi-hand-index me-1"></i>
+                            <span th:text="${hasConfirmedAppointmentThisWeek} ? 'Horário já selecionado' : 'Selecionar este horário'">Selecionar este horário</span>
+                          </button>
+                        </form>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-6">
+        <div class="card h-100">
+          <div class="card-header bg-white border-0 pt-3 pb-0">
+            <h5 class="mb-0"><i class="bi bi-calendar-check me-2"></i>Seus Agendamentos</h5>
+            <small class="text-muted">Agendamentos confirmados nesta semana.</small>
+          </div>
+          <div class="card-body">
+            <div th:if="${appointments == null || appointments.isEmpty()}"
+                 class="text-center py-4 text-muted">
+              <i class="bi bi-calendar-x display-4 d-block mb-2"></i>
+              Nenhum agendamento confirmado.
+            </div>
+
+            <div th:each="apt : ${appointments}"
+                 class="border rounded-3 p-3 mb-2"
+                 th:classappend="${apt.status?.name() == 'CONFIRMED'} ? 'border-start border-4 border-success' : ''"
+                 style="background-color: var(--agn-canvas); border-color: var(--agn-hairline);">
+              <div class="d-flex justify-content-between align-items-center gap-3 flex-wrap">
+                <div>
+                  <div class="fw-semibold">
+                    <span th:if="${apt.slot != null && apt.slot.slotDateTime != null}"
+                          th:text="${#strings.substring(clinicTimeZone.formatForDisplay(apt.slot.slotDateTime), 0, 10)}">--/--/----</span>
+                    <span class="ms-2" style="color: var(--agn-steel);"
+                          th:if="${apt.slot != null && apt.slot.slotDateTime != null}"
+                          th:text="${#strings.substring(clinicTimeZone.formatForDisplay(apt.slot.slotDateTime), 11, 16)}">--:--</span>
+                  </div>
+                  <span class="badge-compact mt-2" style="background-color: var(--agn-tint-mint); color: var(--agn-green-deep);"
+                    th:text="${apt.status?.name() == 'CONFIRMED'} ? 'Confirmado' :
+                         (${apt.status?.name() == 'COMPLETED'} ? 'Concluído' : 'Cancelado')">Confirmado</span>
+                </div>
+                <form th:if="${apt.status?.name() == 'CONFIRMED'}"
+                      th:action="@{/booking/{patientId}/appointments/{appointmentId}/cancel(patientId=${patient.id},appointmentId=${apt.id})}"
+                      method="post" class="m-0">
+                  <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                  <button type="submit" class="btn btn-outline-danger btn-sm px-3">
+                    <i class="bi bi-x-lg me-1"></i>Cancelar
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+</th:block>
+</html>

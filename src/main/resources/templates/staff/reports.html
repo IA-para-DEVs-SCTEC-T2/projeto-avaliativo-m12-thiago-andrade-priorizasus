@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: layout}">
+<th:block th:fragment="content">
+<h2 class="mb-3"><i class="bi bi-download me-2"></i>Relatórios</h2>
+<p style="color: var(--agn-steel);" class="mb-4">Exporte dados do sistema em formato CSV para análise externa.</p>
+
+<div class="row g-4">
+  <!-- Occupancy Report -->
+  <div class="col-md-6">
+    <div class="card h-100">
+      <div class="card-header">
+        <h5 class="mb-0"><i class="bi bi-bar-chart me-2"></i>Ocupação Semanal</h5>
+      </div>
+      <div class="card-body">
+        <p style="color: var(--agn-steel); font-size: 14px;">Métricas de ocupação: total de slots, agendados, cancelados, expirados e taxa de utilização.</p>
+        <div class="mb-3">
+          <label class="form-label small">Semana (segunda-feira)</label>
+          <input type="date" id="occupancyWeekStart" class="form-control form-control-sm"
+                 th:value="${weekStartIso}">
+        </div>
+        <button class="btn btn-success btn-sm w-100"
+                onclick="exportReport('occupancy', document.getElementById('occupancyWeekStart').value)">
+          <i class="bi bi-download me-1"></i>Exportar CSV
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Category Coverage Report -->
+  <div class="col-md-6">
+    <div class="card h-100">
+      <div class="card-header">
+        <h5 class="mb-0"><i class="bi bi-tags me-2"></i>Cobertura por Categoria</h5>
+      </div>
+      <div class="card-body">
+        <p style="color: var(--agn-steel); font-size: 14px;">Percentual de pacientes elegíveis que foram agendados, por categoria (PRENATAL, CHILD, CHRONIC).</p>
+        <div class="mb-3">
+          <label class="form-label small">Semana (segunda-feira)</label>
+          <input type="date" id="coverageWeekStart" class="form-control form-control-sm"
+                 th:value="${weekStartIso}">
+        </div>
+        <button class="btn btn-success btn-sm w-100"
+                onclick="exportReport('coverage', document.getElementById('coverageWeekStart').value)">
+          <i class="bi bi-download me-1"></i>Exportar CSV
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cancellation Report -->
+  <div class="col-md-6">
+    <div class="card h-100">
+      <div class="card-header">
+        <h5 class="mb-0"><i class="bi bi-x-circle me-2"></i>Cancelamentos</h5>
+      </div>
+      <div class="card-body">
+        <p style="color: var(--agn-steel); font-size: 14px;">Registro de cancelamentos: paciente, slot, motivo, data/hora do cancelamento.</p>
+        <div class="row g-2 mb-3">
+          <div class="col-6">
+            <label class="form-label small">Data Início</label>
+            <input type="date" id="cancelFrom" class="form-control form-control-sm">
+          </div>
+          <div class="col-6">
+            <label class="form-label small">Data Fim</label>
+            <input type="date" id="cancelTo" class="form-control form-control-sm">
+          </div>
+        </div>
+        <button class="btn btn-success btn-sm w-100"
+                onclick="exportReport('cancellations', null, document.getElementById('cancelFrom').value, document.getElementById('cancelTo').value)">
+          <i class="bi bi-download me-1"></i>Exportar CSV
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Full Audit Report -->
+  <div class="col-md-6">
+    <div class="card h-100">
+      <div class="card-header">
+        <h5 class="mb-0"><i class="bi bi-journal-text me-2"></i>Auditoria Completa</h5>
+      </div>
+      <div class="card-body">
+        <p style="color: var(--agn-steel); font-size: 14px;">Registro completo de auditoria: todas as ações do sistema com data, tipo, staff, paciente e detalhes.</p>
+        <div class="row g-2 mb-3">
+          <div class="col-6">
+            <label class="form-label small">Data Início</label>
+            <input type="date" id="auditFrom" class="form-control form-control-sm">
+          </div>
+          <div class="col-6">
+            <label class="form-label small">Data Fim</label>
+            <input type="date" id="auditTo" class="form-control form-control-sm">
+          </div>
+        </div>
+        <button class="btn btn-success btn-sm w-100"
+                onclick="exportReport('audit', null, document.getElementById('auditFrom').value, document.getElementById('auditTo').value)">
+          <i class="bi bi-download me-1"></i>Exportar CSV
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script th:inline="javascript">
+  /*<![CDATA[*/
+  function exportReport(type, weekStart, from, to) {
+    var url = '/api/staff/reports/export?type=' + type;
+    if (weekStart) url += '&weekStart=' + weekStart;
+    if (from) url += '&from=' + from;
+    if (to) url += '&to=' + to;
+    window.location.href = url;
+  }
+  /*]]>*/
+</script>
+</th:block>
+</html>

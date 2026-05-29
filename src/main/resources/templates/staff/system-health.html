@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: layout}">
+<th:block th:fragment="content">
+<h2 class="mb-3"><i class="bi bi-heart-pulse me-2"></i>Saúde do Sistema</h2>
+
+<div class="row g-3">
+  <!-- Database Status -->
+  <div class="col-md-4">
+    <div class="agn-card-feature agn-card-mint text-center py-4">
+      <i class="bi bi-database-check display-3 mb-3" style="color: var(--agn-green);"></i>
+      <h5>Banco de Dados</h5>
+      <span class="badge bg-success fs-6">Conectado</span>
+      <br><small class="mt-2 d-block" style="color: var(--agn-steel);">H2 (desenvolvimento)</small>
+    </div>
+  </div>
+
+  <!-- Last Weekly Selection -->
+  <div class="col-md-4">
+    <div class="agn-card-feature agn-card-sky text-center py-4">
+      <i class="bi bi-calendar-check display-3 mb-3" style="color: var(--agn-link-blue);"></i>
+      <h5>Última Seleção Semanal</h5>
+      <span class="badge badge-orange fs-6">Nunca executada</span>
+      <br><small class="mt-2 d-block">
+        <a th:href="@{/staff/weekly-selection}" class="text-decoration-none">
+          Executar agora <i class="bi bi-arrow-right"></i>
+        </a>
+      </small>
+    </div>
+  </div>
+
+  <!-- Scheduled Tasks -->
+  <div class="col-md-4">
+    <div class="agn-card-feature agn-card-yellow text-center py-4">
+      <i class="bi bi-clock-history display-3 mb-3" style="color: var(--agn-orange);"></i>
+      <h5>Tarefas Agendadas</h5>
+      <span class="badge badge-orange fs-6">Agendador Desativado</span>
+      <br><small class="mt-2 d-block" style="color: var(--agn-steel);">@EnableScheduling pendente</small>
+    </div>
+  </div>
+
+  <!-- System Info -->
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-header">
+        <h6 class="mb-0"><i class="bi bi-info-circle me-2"></i>Informações do Sistema</h6>
+      </div>
+      <div class="card-body">
+        <dl class="row small mb-0">
+          <dt class="col-sm-5">Aplicação</dt>
+          <dd class="col-sm-7">PriorizaSUS v0.0.1-SNAPSHOT</dd>
+
+          <dt class="col-sm-5">Fuso Horário (Armazenamento)</dt>
+          <dd class="col-sm-7">UTC</dd>
+
+          <dt class="col-sm-5">Fuso Horário (Exibição)</dt>
+          <dd class="col-sm-7">America/Sao_Paulo (BRT)</dd>
+
+          <dt class="col-sm-5">Horário Atual (BRT)</dt>
+          <dd class="col-sm-7"><span th:text="${brtTimeNow}">—</span></dd>
+
+          <dt class="col-sm-5">Fase</dt>
+          <dd class="col-sm-7">Fase 1 — MVP</dd>
+
+          <dt class="col-sm-5">Features Ativas</dt>
+          <dd class="col-sm-7">Patient Master, Capacity Model, Scoring Algorithm, Booking System, Staff Dashboard</dd>
+        </dl>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Errors -->
+  <div class="col-md-6">
+    <div class="card shadow-sm">
+      <div class="card-header bg-white">
+        <h6 class="mb-0"><i class="bi bi-exclamation-triangle me-2"></i>Erros Recentes</h6>
+      </div>
+      <div class="card-body">
+        <div class="text-center text-muted py-3">
+          <i class="bi bi-check-circle display-4 d-block mb-2 text-success"></i>
+          Nenhum erro registrado.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</th:block>
+</html>

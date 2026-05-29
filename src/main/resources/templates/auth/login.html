@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: layout}">
+<th:block th:fragment="content">
+<div class="row justify-content-center mt-5">
+  <div class="col-md-5 col-lg-4">
+
+    <div class="text-center mb-4">
+      <i class="bi bi-shield-lock display-1" style="color: var(--agn-purple);"></i>
+      <h3 class="mt-2">Acesso Restrito</h3>
+      <p style="color: var(--agn-steel);">Dashboard &mdash; PriorizaSUS</p>
+    </div>
+
+    <!-- Error Alert -->
+    <div th:if="${param.error}" class="alert" role="alert"
+         style="background-color: var(--agn-tint-rose); border-color: var(--agn-tint-rose);">
+      <i class="bi bi-exclamation-triangle me-2"></i>
+      Usuário ou senha inválidos. Tente novamente.
+    </div>
+
+    <!-- Logout Alert -->
+    <div th:if="${param.logout}" class="alert" role="alert"
+         style="background-color: var(--agn-tint-mint); border-color: var(--agn-tint-mint);">
+      <i class="bi bi-check-circle me-2"></i>
+      Você saiu do sistema com sucesso.
+    </div>
+
+    <div class="card">
+      <div class="card-body p-4">
+        <form th:action="@{/auth/login}" method="post">
+          <div class="mb-3">
+            <label for="username" class="form-label fw-semibold">Usuário</label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-person"></i></span>
+              <input type="text" id="username" name="username"
+                     class="form-control" value="thiago.andrade"
+                     placeholder="thiago.andrade"
+                     required autofocus>
+            </div>
+          </div>
+          <div class="mb-4">
+            <label for="password" class="form-label fw-semibold">Senha</label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-key"></i></span>
+              <input type="password" id="password" name="password"
+                     class="form-control" value="admin" placeholder="admin"
+                     required>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary w-100 btn-lg">
+            <i class="bi bi-box-arrow-in-right me-2"></i>Entrar
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <div class="text-center mt-3">
+      <a th:href="@{/}" class="text-muted small">
+        <i class="bi bi-arrow-left me-1"></i>Voltar ao início
+      </a>
+    </div>
+
+  </div>
+</div>
+</th:block>
+</html>

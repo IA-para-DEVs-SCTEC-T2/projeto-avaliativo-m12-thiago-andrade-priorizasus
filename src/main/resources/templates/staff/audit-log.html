@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: layout}">
+<th:block th:fragment="content">
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h2><i class="bi bi-journal-text me-2"></i>Auditoria</h2>
+  <button class="btn btn-outline-success btn-sm" id="exportCsvBtn">
+    <i class="bi bi-download me-1"></i>Exportar CSV
+  </button>
+</div>
+
+<!-- Filters -->
+<div class="card mb-3">
+  <div class="card-body">
+    <form id="auditFilterForm" class="row g-2" method="get" th:action="@{/staff/audit-log}">
+      <div class="col-md-3">
+        <label class="form-label small">Data Início</label>
+        <input type="date" name="from" class="form-control form-control-sm">
+      </div>
+      <div class="col-md-3">
+        <label class="form-label small">Data Fim</label>
+        <input type="date" name="to" class="form-control form-control-sm">
+      </div>
+      <div class="col-md-3">
+        <label class="form-label small">Tipo de Ação</label>
+        <select name="actionType" class="form-select form-select-sm">
+          <option value="">Todas</option>
+          <option th:each="type : ${actionTypes}"
+                  th:value="${type.name()}"
+                  th:text="${type.displayName}">Ação</option>
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small">Paciente (Nome)</label>
+        <input type="text" name="patientName" class="form-control form-control-sm"
+               placeholder="Nome do paciente...">
+      </div>
+      <div class="col-md-1 d-flex align-items-end">
+        <button type="submit" class="btn btn-sm btn-primary w-100">
+          <i class="bi bi-search"></i>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Audit Table -->
+<div class="card">
+  <div class="table-responsive">
+    <table class="table table-hover table-sm mb-0">
+      <thead>
+        <tr>
+          <th>Data/Hora (BRT)</th>
+          <th>Ação</th>
+          <th>Staff</th>
+          <th>Paciente</th>
+          <th>Slot</th>
+          <th>Detalhes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr th:if="${auditEntries == null || auditEntries.isEmpty()}">
+          <td colspan="6" class="text-center text-muted py-4">
+            <i class="bi bi-inbox display-4 d-block mb-2"></i>
+            Nenhum registro de auditoria encontrado.
+            <br><small>Os registros aparecerão aqui conforme as ações forem executadas.</small>
+          </td>
+        </tr>
+        <tr th:each="entry : ${auditEntries}">
+          <td class="small">
+            <span th:if="${entry.timestamp != null}"
+                  th:text="${clinicTimeZone.formatForDisplay(entry.timestamp)}">—</span>
+            <span th:unless="${entry.timestamp != null}">—</span>
+          </td>
+          <td><span class="badge bg-secondary" th:text="${entry.actionType?.displayName}">Ação</span></td>
+          <td th:text="${entry.staffUser != null ? entry.staffUser : 'system'}">system</td>
+          <td>
+            <a th:if="${entry.patientId != null}"
+               th:href="@{/patients/{id}(id=${entry.patientId})}"
+               th:text="${'#' + entry.patientId}">#—</a>
+            <span th:unless="${entry.patientId != null}">—</span>
+          </td>
+          <td th:text="${entry.slotId != null ? entry.slotId : '—'}">—</td>
+          <td class="small text-muted" th:text="${entry.details != null ? entry.details : '—'}">—</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="card-footer bg-white text-muted small" th:if="${auditEntries != null}">
+    Total: <span th:text="${auditEntries.size()}">0</span> registro(s)
+  </div>
+</div>
+
+<script th:inline="javascript">
+  /*<![CDATA[*/
+  document.getElementById('exportCsvBtn').addEventListener('click', function() {
+    window.location.href = '/api/staff/reports/export?type=audit';
+  });
+  /*]]>*/
+</script>
+</th:block>
+</html>

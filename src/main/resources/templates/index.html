@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org"
+  xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="~{fragments/layout :: layout}">
+<th:block th:fragment="content">
+<div class="row justify-content-center mt-3">
+  <div class="col-lg-7">
+
+    <!-- Hero -->
+    <div class="text-center mb-3">
+      <h3 class="mb-1">
+        <i class="bi bi-calendar-heart me-2" style="color: var(--agn-purple);"></i>PriorizaSUS
+      </h3>
+      <p class="small mb-0" style="color: var(--agn-steel); max-width: 480px; margin-left: auto; margin-right: auto;">
+        Agendamento inteligente e prioritário, sem filas e com prioridade para quem mais precisa.
+      </p>
+    </div>
+
+    <!-- Info alert -->
+    <div class="alert" role="alert" style="background-color: var(--agn-tint-sky); border-color: var(--agn-tint-sky);">
+      <i class="bi bi-info-circle me-2"></i>
+      Preencha seus dados para entrar na análise da Seleção Semanal.
+      Se selecionado(a), você receberá um email com o link para agendar sua consulta.
+      <br><strong class="mt-2 d-block" style="color: var(--agn-charcoal);">
+        <i class="bi bi-calendar-week me-1"></i>
+        Semana de atendimento:
+        <span th:text="${nextMondayDisplay}">--/--/----</span>
+        a
+        <span th:text="${#temporals.format(nextMonday.plusDays(4), 'dd/MM/yyyy')}">--/--/----</span>
+      </strong>
+    </div>
+
+    <!-- Success message -->
+    <div th:if="${successMessage}" class="alert text-center" role="alert"
+         style="background-color: var(--agn-tint-mint); border-color: var(--agn-tint-mint);">
+      <i class="bi bi-check-circle me-2"></i>
+      <span th:text="${successMessage}">Cadastro realizado com sucesso!</span>
+    </div>
+
+    <!-- Error message -->
+    <div th:if="${errorMessage}" class="alert" role="alert"
+         style="background-color: var(--agn-tint-rose); border-color: var(--agn-tint-rose);">
+      <i class="bi bi-exclamation-triangle me-2"></i>
+      <span th:text="${errorMessage}">Erro ao cadastrar.</span>
+    </div>
+
+    <!-- Registration Form -->
+    <div class="card">
+      <div class="card-header">
+        <h5 class="mb-0">
+          <i class="bi bi-person-plus me-2"></i>Cadastro para Seleção Semanal
+        </h5>
+      </div>
+      <div class="card-body">
+        <form th:action="@{/patients/register}" th:object="${patient}" method="post">
+
+          <!-- Name -->
+          <div class="mb-2">
+            <label for="name" class="form-label">Nome Completo <span style="color: var(--agn-error);">*</span></label>
+            <input type="text" id="name" th:field="*{name}"
+                   class="form-control" required placeholder="Ex: Maria Silva">
+          </div>
+
+          <!-- Row: CPF + Birth Date -->
+          <div class="row g-3 mb-2">
+            <div class="col-md-6">
+              <label for="cpf" class="form-label">CPF <span style="color: var(--agn-error);">*</span></label>
+              <input type="text" id="cpf" th:field="*{cpf}"
+                     class="form-control" required placeholder="000.000.000-00" maxlength="14" data-cpf-mask>
+              <div class="form-text">Apenas os 11 dígitos.</div>
+            </div>
+            <div class="col-md-6">
+              <label for="birthDate" class="form-label">Data de Nascimento <span style="color: var(--agn-error);">*</span></label>
+              <input type="date" id="birthDate" th:field="*{birthDate}"
+                     class="form-control" required th:max="${today}">
+            </div>
+          </div>
+
+          <!-- Row: Phone + Email -->
+          <div class="row g-3 mb-2">
+            <div class="col-md-6">
+              <label for="phone" class="form-label">Telefone</label>
+              <input type="tel" id="phone" th:field="*{phone}"
+                     class="form-control" placeholder="(11) 99999-9999">
+            </div>
+            <div class="col-md-6">
+              <label for="email" class="form-label">Email <span style="color: var(--agn-error);">*</span></label>
+              <input type="email" id="email" th:field="*{email}"
+                     class="form-control" required placeholder="seu@email.com">
+              <div class="form-text">O link de agendamento será enviado para este email.</div>
+            </div>
+          </div>
+
+          <!-- Address -->
+          <div class="mb-2">
+            <label for="address" class="form-label">Endereço</label>
+            <input type="text" id="address" th:field="*{address}"
+                   class="form-control" placeholder="Rua, número, bairro">
+          </div>
+
+          <hr>
+
+          <!-- Category Selection -->
+          <h6 class="mb-2">
+            <i class="bi bi-clipboard2-pulse me-2"></i>Categoria Clínica
+            <small style="color: var(--agn-steel);">(selecione a que se aplica)</small>
+          </h6>
+
+          <!-- PRENATAL -->
+          <div class="agn-card-feature agn-card-rose mb-2" style="padding: var(--agn-space-md) var(--agn-space-lg);">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="catPrenatal"
+                     name="categoryPrenatal" value="PRENATAL">
+              <label class="form-check-label fw-semibold" for="catPrenatal">
+                <i class="bi bi-heart-pulse me-1" style="color: var(--agn-pink);"></i>Pré-Natal (Gestante)
+              </label>
+            </div>
+            <div class="row g-2 mt-2 ms-3" id="prenatalFields" style="display:none">
+              <div class="col-md-6">
+                <label class="form-label small">Data do Ultrassom</label>
+                <input type="date" class="form-control form-control-sm"
+                       name="ultrasoundDate" th:max="${today}">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label small">Semanas de Gestação no Ultrassom</label>
+                <input type="number" class="form-control form-control-sm"
+                       name="gestationalWeeks" min="1" max="42" placeholder="Ex: 24">
+              </div>
+            </div>
+          </div>
+
+          <!-- CHILD -->
+          <div class="agn-card-feature agn-card-mint mb-2" style="padding: var(--agn-space-md) var(--agn-space-lg);">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="catChild"
+                     name="categoryChild" value="CHILD">
+              <label class="form-check-label fw-semibold" for="catChild">
+                <i class="bi bi-people me-1" style="color: var(--agn-green);"></i>Puericultura (Criança 0–3 anos)
+              </label>
+            </div>
+          </div>
+
+          <!-- CHRONIC -->
+          <div class="agn-card-feature agn-card-yellow mb-2" style="padding: var(--agn-space-md) var(--agn-space-lg);">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="catChronic"
+                     name="categoryChronic" value="CHRONIC">
+              <label class="form-check-label fw-semibold" for="catChronic">
+                <i class="bi bi-clipboard2-pulse me-1" style="color: var(--agn-orange);"></i>Condição Crônica (Diabetes, Hipertensão, Saúde Mental, Renovação de Receita, entre outros)
+              </label>
+            </div>
+          </div>
+
+          <!-- Submit -->
+          <div class="d-grid mt-3">
+            <button type="submit" class="btn btn-primary btn-lg">
+              <i class="bi bi-send me-2"></i>Enviar Cadastro
+            </button>
+          </div>
+
+          <div class="text-center mt-2">
+            <small style="color: var(--agn-steel);">
+              Seus dados serão analisados pelo sistema. Os 40 pacientes com maior prioridade
+              clínica receberão um link por email para agendar a consulta.
+            </small>
+          </div>
+        </form>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  document.getElementById('catPrenatal').addEventListener('change', function() {
+    document.getElementById('prenatalFields').style.display = this.checked ? 'flex' : 'none';
+  });
+</script>
+</th:block>
+</html>
