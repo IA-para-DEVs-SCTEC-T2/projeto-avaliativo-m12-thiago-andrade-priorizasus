@@ -9,6 +9,11 @@ on:
       - '.specs/**'
   workflow_dispatch:
 
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
 jobs:
   spec-drift-detection:
     name: SpecDriftDetectionTest — REQ-ID Traceability
