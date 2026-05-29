@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: layout}">
+<th:block th:fragment="content">
+<div class="row justify-content-center mt-5">
+  <div class="col-md-6 text-center">
+    <div class="display-1 fw-bold" style="color: var(--agn-error);">500</div>
+    <i class="bi bi-tools display-3 mb-3" style="color: var(--agn-error);"></i>
+    <h3>Erro Interno do Servidor</h3>
+    <p style="color: var(--agn-steel);">
+      Ocorreu um erro inesperado no servidor. Nossa equipe foi notificada.
+      Por favor, tente novamente em alguns minutos.
+    </p>
+    <div class="d-flex gap-2 justify-content-center">
+      <a th:href="@{/}" class="btn btn-primary">
+        <i class="bi bi-house-door me-1"></i>Voltar ao Início
+      </a>
+      <a th:href="@{/staff/system-health}" class="btn btn-outline-secondary">
+        <i class="bi bi-heart-pulse me-1"></i>Ver Status do Sistema
+      </a>
+    </div>
+  </div>
+</div>
+</th:block>
+</html>

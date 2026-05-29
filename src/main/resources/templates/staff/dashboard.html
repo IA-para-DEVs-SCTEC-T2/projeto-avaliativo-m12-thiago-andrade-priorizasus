@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: layout}">
+<th:block th:fragment="content">
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h3><i class="bi bi-speedometer2 me-2"></i>Dashboard</h3>
+</div>
+
+<!-- Row 1: Weekly Selection + Occupancy -->
+<div class="row g-3 mb-3">
+  <div class="col-lg-4">
+    <div class="card h-100">
+      <div class="card-header">
+        <h6 class="mb-0"><i class="bi bi-trophy me-2"></i>Seleção Semanal</h6>
+      </div>
+      <div class="card-body d-flex flex-column justify-content-center text-center">
+        <a th:href="@{/staff/weekly-selection}" class="btn btn-primary w-100 mb-3">
+          <i class="bi bi-play-fill me-1"></i>Executar Seleção Semanal
+        </a>
+        <a th:href="@{/staff/weekly-selection}" class="btn btn-outline-secondary w-100">
+          <i class="bi bi-list-ol me-1"></i>Ver Ranking
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-8">
+    <div class="card h-100">
+      <div class="card-header">
+        <h6 class="mb-0"><i class="bi bi-bar-chart-fill me-2"></i>Ocupação</h6>
+      </div>
+      <div class="card-body">
+        <div class="row g-3 mb-3">
+          <div class="col-4">
+            <div class="agn-card-feature agn-card-rose text-center py-3 px-2">
+              <div style="font-size: 12px; font-weight: 500; color: var(--agn-pink-deep);">Pré-Natal</div>
+              <div class="fw-bold" style="font-size: 28px; color: var(--agn-pink-deep);" th:text="${prenatalCount != null ? prenatalCount : '—'}">—</div>
+            </div>
+          </div>
+          <div class="col-4">
+            <div class="agn-card-feature agn-card-sky text-center py-3 px-2">
+              <div style="font-size: 12px; font-weight: 500; color: var(--agn-link-blue);">Puericultura</div>
+              <div class="fw-bold" style="font-size: 28px; color: var(--agn-link-blue);" th:text="${childCount != null ? childCount : '—'}">—</div>
+            </div>
+          </div>
+          <div class="col-4">
+            <div class="agn-card-feature agn-card-yellow text-center py-3 px-2">
+              <div style="font-size: 12px; font-weight: 500; color: var(--agn-orange-deep);">Crônico</div>
+              <div class="fw-bold" style="font-size: 28px; color: var(--agn-orange-deep);" th:text="${chronicCount != null ? chronicCount : '—'}">—</div>
+            </div>
+          </div>
+        </div>
+        <div class="progress" style="height: 8px; border-radius: 4px;" th:if="${totalSlots > 0}">
+          <div class="progress-bar bg-success"
+               th:style="'width: ' + ${occupancyPct != null ? occupancyPct : 0} + '%'"
+               th:attr="aria-valuenow=${occupancyPct}"
+               th:text="${occupancyPct != null && occupancyPct > 10 ? occupancyPct + '%' : ''}"></div>
+        </div>
+        <div class="text-center" th:unless="${totalSlots > 0}">
+          <small style="color: var(--agn-steel);">Execute a Seleção Semanal para ver os dados de ocupação.</small>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Row 2: Slot Grid -->
+<div class="mb-3">
+  <th:block th:replace="~{fragments/slot-grid :: slotGrid(${slots}, ${weekStart}, ${weekStartDisplay}, ${dayHeaders}, ${timeHeaders}, ${showLinks}, ${true}, ${slotColors}, ${slotCategoryLabels})}"></th:block>
+</div>
+</th:block>
+</html>

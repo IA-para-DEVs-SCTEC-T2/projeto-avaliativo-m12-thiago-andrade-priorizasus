@@ -1,0 +1,131 @@
+/* ═══════════════════════════════════════════════════════════════════
+   PRIORIZASUS — Design Tokens (Notion-inspired)
+   Generated from DESIGN.md via getdesign.md/notion
+   ═══════════════════════════════════════════════════════════════════ */
+
+:root {
+  /* ── Brand & Primary ── */
+  --agn-purple: #5645d4;
+  --agn-purple-pressed: #4534b3;
+  --agn-purple-deep: #3a2a99;
+  --agn-on-primary: #ffffff;
+
+  /* ── Navy Palette ── */
+  --agn-navy: #0a1530;
+  --agn-navy-deep: #070f24;
+  --agn-navy-mid: #1a2a52;
+
+  /* ── Brand Accents ── */
+  --agn-link-blue: #0075de;
+  --agn-link-blue-pressed: #005bab;
+  --agn-orange: #dd5b00;
+  --agn-orange-deep: #793400;
+  --agn-pink: #ff64c8;
+  --agn-pink-deep: #a02e6d;
+  --agn-purple-brand: #7b3ff2;
+  --agn-purple-brand-300: #d6b6f6;
+  --agn-purple-brand-800: #391c57;
+  --agn-teal: #2a9d99;
+  --agn-green: #1aae39;
+  --agn-yellow: #f5d75e;
+  --agn-brown: #523410;
+
+  /* ── Card Tints (Pastel Feature Cards) ── */
+  --agn-tint-peach: #ffe8d4;
+  --agn-tint-rose: #fde0ec;
+  --agn-tint-mint: #d9f3e1;
+  --agn-tint-lavender: #e6e0f5;
+  --agn-tint-sky: #dcecfa;
+  --agn-tint-yellow: #fef7d6;
+  --agn-tint-yellow-bold: #f9e79f;
+  --agn-tint-cream: #f8f5e8;
+  --agn-tint-gray: #f0eeec;
+
+  /* ── Surface ── */
+  --agn-canvas: #ffffff;
+  --agn-surface: #f6f5f4;
+  --agn-surface-soft: #fafaf9;
+
+  /* ── Hairlines / Borders ── */
+  --agn-hairline: #e5e3df;
+  --agn-hairline-soft: #ede9e4;
+  --agn-hairline-strong: #c8c4be;
+
+  /* ── Text / Ink ── */
+  --agn-ink-deep: #000000;
+  --agn-ink: #1a1a1a;
+  --agn-charcoal: #37352f;
+  --agn-slate: #5d5b54;
+  --agn-steel: #787671;
+  --agn-stone: #a4a097;
+  --agn-muted: #bbb8b1;
+  --agn-on-dark: #ffffff;
+  --agn-on-dark-muted: #a4a097;
+
+  /* ── Semantic ── */
+  --agn-success: #1aae39;
+  --agn-warning: #dd5b00;
+  --agn-error: #e03131;
+
+  /* ── Typography Scale ── */
+  --agn-font-family: 'Inter', 'Notion Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --agn-font-mono: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+
+  --agn-text-hero: 600 80px/1.05 var(--agn-font-family);
+  --agn-text-display-lg: 600 56px/1.10 var(--agn-font-family);
+  --agn-text-heading-1: 600 48px/1.15 var(--agn-font-family);
+  --agn-text-heading-2: 600 36px/1.20 var(--agn-font-family);
+  --agn-text-heading-3: 600 28px/1.25 var(--agn-font-family);
+  --agn-text-heading-4: 600 22px/1.30 var(--agn-font-family);
+  --agn-text-heading-5: 600 18px/1.40 var(--agn-font-family);
+  --agn-text-subtitle: 400 18px/1.50 var(--agn-font-family);
+  --agn-text-body-md: 400 16px/1.55 var(--agn-font-family);
+  --agn-text-body-md-medium: 500 16px/1.55 var(--agn-font-family);
+  --agn-text-body-sm: 400 14px/1.50 var(--agn-font-family);
+  --agn-text-body-sm-medium: 500 14px/1.50 var(--agn-font-family);
+  --agn-text-caption: 400 13px/1.40 var(--agn-font-family);
+  --agn-text-caption-bold: 600 13px/1.40 var(--agn-font-family);
+  --agn-text-micro: 500 12px/1.40 var(--agn-font-family);
+  --agn-text-micro-uppercase: 600 11px/1.40 var(--agn-font-family);
+  --agn-text-button: 500 14px/1.30 var(--agn-font-family);
+
+  /* ── Border Radius ── */
+  --agn-radius-xs: 4px;
+  --agn-radius-sm: 6px;
+  --agn-radius-md: 8px;
+  --agn-radius-lg: 12px;
+  --agn-radius-xl: 16px;
+  --agn-radius-xxl: 20px;
+  --agn-radius-xxxl: 24px;
+  --agn-radius-full: 9999px;
+
+  /* ── Spacing (4px base) ── */
+  --agn-space-xxs: 4px;
+  --agn-space-xs: 8px;
+  --agn-space-sm: 12px;
+  --agn-space-md: 16px;
+  --agn-space-lg: 20px;
+  --agn-space-xl: 24px;
+  --agn-space-xxl: 32px;
+  --agn-space-xxxl: 40px;
+  --agn-space-section-sm: 48px;
+  --agn-space-section: 64px;
+  --agn-space-section-lg: 96px;
+  --agn-space-hero: 120px;
+
+  /* ── Elevation / Shadows ── */
+  --agn-shadow-0: none;
+  --agn-shadow-1: 0 1px 2px rgba(15, 15, 15, 0.04);
+  --agn-shadow-2: 0 4px 12px rgba(15, 15, 15, 0.08);
+  --agn-shadow-3: 0 24px 48px -8px rgba(15, 15, 15, 0.20);
+  --agn-shadow-4: 0 16px 48px -8px rgba(15, 15, 15, 0.16);
+
+  /* ── Component Tokens ── */
+  --agn-input-height: 44px;
+  --agn-input-padding: 10px 16px;
+  --agn-btn-padding: 10px 18px;
+  --agn-btn-radius: var(--agn-radius-md);
+  --agn-card-radius: var(--agn-radius-lg);
+  --agn-card-padding: var(--agn-space-xl);
+  --agn-card-border: 1px solid var(--agn-hairline);
+}

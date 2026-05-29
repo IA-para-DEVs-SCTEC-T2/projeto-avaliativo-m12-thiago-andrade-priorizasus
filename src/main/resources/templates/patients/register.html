@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: layout}">
+<th:block th:fragment="content">
+<div class="row justify-content-center">
+  <div class="col-lg-6">
+
+    <div class="card">
+      <div class="card-header">
+        <h5 class="mb-0"><i class="bi bi-person-plus me-2"></i>Novo Paciente</h5>
+      </div>
+      <div class="card-body">
+        <form th:action="@{/patients}" th:object="${patient}" method="post">
+
+          <!-- Name -->
+          <div class="mb-3">
+            <label for="name" class="form-label">Nome Completo <span style="color: var(--agn-error);">*</span></label>
+            <input type="text" id="name" th:field="*{name}"
+                   class="form-control" required
+                   placeholder="Ex: Maria Silva">
+            <div class="invalid-feedback" th:if="${#fields.hasErrors('name')}" th:errors="*{name}">
+              Nome é obrigatório.
+            </div>
+          </div>
+
+          <!-- CPF -->
+          <div class="mb-3">
+            <label for="cpf" class="form-label">CPF <span style="color: var(--agn-error);">*</span></label>
+            <input type="text" id="cpf" th:field="*{cpf}"
+                   class="form-control" required
+                   placeholder="000.000.000-00" maxlength="14"
+                   data-cpf-mask
+                   pattern="\d{3}\.?\d{3}\.?\d{3}-?\d{2}">
+            <div class="form-text">Digite apenas os 11 dígitos do CPF.</div>
+            <div class="invalid-feedback" th:if="${#fields.hasErrors('cpf')}" th:errors="*{cpf}">
+              CPF inválido.
+            </div>
+          </div>
+
+          <!-- Birth Date -->
+          <div class="mb-3">
+            <label for="birthDate" class="form-label">Data de Nascimento <span style="color: var(--agn-error);">*</span></label>
+            <input type="date" id="birthDate" th:field="*{birthDate}"
+                   class="form-control" required
+                   th:max="${today}">
+            <div class="invalid-feedback" th:if="${#fields.hasErrors('birthDate')}" th:errors="*{birthDate}">
+              Data de nascimento inválida.
+            </div>
+          </div>
+
+          <!-- Phone -->
+          <div class="mb-3">
+            <label for="phone" class="form-label">Telefone</label>
+            <input type="tel" id="phone" th:field="*{phone}"
+                   class="form-control"
+                   placeholder="(11) 99999-9999">
+          </div>
+
+          <!-- Address -->
+          <div class="mb-3">
+            <label for="address" class="form-label">Endereço</label>
+            <textarea id="address" th:field="*{address}"
+                      class="form-control" rows="2"
+                      placeholder="Rua, número, bairro, cidade"></textarea>
+          </div>
+
+          <!-- Submit -->
+          <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary">
+              <i class="bi bi-check-lg me-1"></i>Cadastrar Paciente
+            </button>
+            <a th:href="@{/patients}" class="btn btn-outline-secondary">
+              Cancelar
+            </a>
+          </div>
+        </form>
+      </div>
+    </div>
+
+  </div>
+</div>
+</th:block>
+</html>

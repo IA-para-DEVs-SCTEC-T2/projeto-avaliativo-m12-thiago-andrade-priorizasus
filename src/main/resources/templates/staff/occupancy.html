@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: layout}">
+<th:block th:fragment="content">
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h2><i class="bi bi-bar-chart-fill me-2"></i>Ocupação</h2>
+  <div class="btn-group">
+    <a th:href="@{/staff/occupancy(weekStart=${weekStart.minusDays(7)})}"
+       class="btn btn-outline-secondary btn-sm">
+      <i class="bi bi-chevron-left"></i> Anterior
+    </a>
+    <span class="btn btn-outline-secondary btn-sm disabled">
+      <span th:text="${weekStartDisplay}">--/--/----</span>
+    </span>
+    <a th:href="@{/staff/occupancy(weekStart=${weekStart.plusDays(7)})}"
+       class="btn btn-outline-secondary btn-sm">
+      Próxima <i class="bi bi-chevron-right"></i>
+    </a>
+  </div>
+</div>
+
+<div class="row g-3">
+  <!-- Overall Utilization -->
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header">
+        <h5 class="mb-0"><i class="bi bi-pie-chart me-2"></i>Utilização Geral</h5>
+      </div>
+      <div class="card-body text-center py-4">
+        <div class="display-2 fw-bold" th:classappend="${occupancyPct >= 80} ? 'text-success' : (${occupancyPct >= 60} ? 'text-warning' : 'text-danger')"
+             th:text="${occupancyPct} + '%'">—</div>
+        <p style="color: var(--agn-steel);" th:if="${totalSlots > 0}">
+          <span th:text="${bookedSlots}">0</span> de
+          <span th:text="${totalSlots}">40</span> slots ocupados
+        </p>
+        <p style="color: var(--agn-steel);" th:unless="${totalSlots > 0}">Execute a Seleção Semanal para ver os dados.</p>
+        <a th:href="@{/staff/weekly-selection}" class="btn btn-primary btn-sm">
+          <i class="bi bi-play-fill me-1"></i>Executar Seleção Semanal
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Per-Category -->
+  <div class="col-md-4">
+    <div class="agn-card-feature agn-card-rose">
+      <h6 class="mb-2"><i class="bi bi-gender-female me-1"></i>Pré-Natal</h6>
+      <div class="display-4 fw-bold" style="color: var(--agn-pink);" th:text="${prenatalCount}">0</div>
+      <small style="color: var(--agn-steel);">agendamentos na semana</small>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="agn-card-feature agn-card-sky">
+      <h6 class="mb-2"><i class="bi bi-emoji-smile me-1"></i>Puericultura</h6>
+      <div class="card-body text-center">
+        <div class="display-4 fw-bold text-info" th:text="${childCount}">0</div>
+        <small class="text-muted">agendamentos na semana</small>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card shadow-sm border-warning">
+      <div class="card-header bg-warning bg-opacity-10">
+        <h6 class="mb-0"><i class="bi bi-heart-pulse me-1"></i>Crônico</h6>
+      </div>
+      <div class="card-body text-center">
+        <div class="display-4 fw-bold text-warning" th:text="${chronicCount}">0</div>
+        <small class="text-muted">agendamentos na semana</small>
+      </div>
+    </div>
+  </div>
+
+  <!-- Trends -->
+  <div class="col-12">
+    <div class="card shadow-sm">
+      <div class="card-header bg-white">
+        <h5 class="mb-0"><i class="bi bi-graph-up me-2"></i>Tendências (Últimas 4 Semanas)</h5>
+      </div>
+      <div class="card-body text-center text-muted py-3">
+        <i class="bi bi-bar-chart display-4 d-block mb-2"></i>
+        Dados históricos disponíveis após múltiplas Seleções Semanais.
+      </div>
+    </div>
+  </div>
+</div>
+</th:block>
+</html>
