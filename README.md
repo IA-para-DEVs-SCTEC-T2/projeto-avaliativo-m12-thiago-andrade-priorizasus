@@ -238,7 +238,7 @@ Fora do escopo:
 
 Link do YouTube (não listado):
 
-> **PENDENTE** — insira a URL aqui
+> https://youtu.be/Rj0mMSuSa74
 
 Roteiro de gravação: `docs/prompts/19-demo-final-ava.md`
 Checklist de entrega: `docs/prompts/20-checklist-final-ava.md`

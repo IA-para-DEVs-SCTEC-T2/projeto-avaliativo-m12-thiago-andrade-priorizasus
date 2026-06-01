@@ -38,7 +38,7 @@ class HomeControllerTest {
         .andExpect(model().attributeExists("patient"))
         .andExpect(model().attributeExists("pageTitle"))
         .andExpect(model().attributeExists("today"))
-        .andExpect(model().attributeExists("nextMonday"))
-        .andExpect(model().attributeExists("nextMondayDisplay"));
+        .andExpect(model().attributeExists("weekStart"))
+        .andExpect(model().attributeExists("weekStartDisplay"));
   }
 }
