@@ -30,18 +30,15 @@ public class HomeController {
   @GetMapping("/")
   public String home(Model model) {
     java.time.LocalDate today = clinicTimeZone.today();
-    java.time.LocalDate nextMonday = today.with(java.time.DayOfWeek.MONDAY);
-    if (!nextMonday.isAfter(today)) {
-      nextMonday = nextMonday.plusWeeks(1);
-    }
+    java.time.LocalDate weekStart = today.with(java.time.DayOfWeek.MONDAY);
     java.time.format.DateTimeFormatter displayFmt =
         java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
     model.addAttribute("patient", new Patient());
     model.addAttribute("pageTitle", "PRIORIZASUS");
     model.addAttribute("today", today);
-    model.addAttribute("nextMonday", nextMonday);
-    model.addAttribute("nextMondayDisplay", nextMonday.format(displayFmt));
+    model.addAttribute("weekStart", weekStart);
+    model.addAttribute("weekStartDisplay", weekStart.format(displayFmt));
     return "index";
   }
 }
